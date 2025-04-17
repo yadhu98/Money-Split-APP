@@ -3,46 +3,74 @@ const STORAGE_KEY = 'splitAppData';
 let splits = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 export function getSplitsForUser(userId) {
-  const owed = splits.filter(split => 
-    split.shares.some(share => share.userId === userId) &&
-    split.creatorId !== userId
-  ).map(split => {
-    const userShare = split.shares.find(share => share.userId === userId);
-    const paid = split.payments.reduce((sum, p) => sum + (p.userId === userId ? p.amount : 0), 0);
-    console.log(userShare,paid)
+    console.log("splituser " ,userId);
+    const userOwes = getUserOwesSplits(userId);
+    const othersOweUser = getOthersOweSplits(userId);
     return {
-      ...split,
-      remaining: userShare.amount - paid,
+      owed: userOwes,
+      owedTo: othersOweUser
     };
-  });
-  console.log(splits)
-  const owedTo = splits.filter(split => 
-    split.creatorId === userId
-  ).map(split => {
-    console.log("splity",split)
-    const payments = split.payments.reduce((acc, p) => {
-      if (!acc[p.userId]) {
-        acc[p.userId] = 0;
-      }
-      acc[p.userId] += p.amount;
-      return acc;
-    }, {});
-
-    return {
-      ...split,
-      shares: split.shares.map(share => {
-        const paid = payments[share.userId] || 0;
+  }
+  
+  function getUserOwesSplits(userId) {
+    return splits
+      .filter(split => {
+        const isSharing = split.shares.some(share => share.userId === userId);
+        const notCreator = split.creatorId !== userId;
+        return isSharing && notCreator;
+      })
+      .map(split => {
+        const userPart = split.shares.find(share => share.userId === userId);
+        const paidSoFar = getTotalPaid(split.payments, userId);
+        
+        console.log("User owes",userPart.amount - paidSoFar ,split.id);
+        
         return {
-          ...share,
-          paid,
-          remaining: share.amount - paid,
+          ...split,
+          remaining: userPart.amount - paidSoFar
         };
-      }),
-    };
-  });
-
-  return { owed, owedTo };
-}
+      });
+  }
+  
+  function getOthersOweSplits(userId) {
+    return splits
+      .filter(split => split.creatorId === userId)
+      .map(split => {
+        const whoPaidWhat = getPaymentSummary(split.payments);
+        
+        console.log("payments", whoPaidWhat);
+        
+        return {
+          ...split,
+          shares: split.shares.map(share => ({
+            ...share,
+            paid: whoPaidWhat[share.userId] || 0,
+            remaining: share.amount - (whoPaidWhat[share.userId] || 0)
+          }))
+        };
+      });
+  }
+  
+  function getTotalPaid(payments, userId) {
+    let total = 0;
+    for (const payment of payments) {
+      if (payment.userId === userId) {
+        total += payment.amount;
+      }
+    }
+    return total;
+  }
+  
+  function getPaymentSummary(payments) {
+    const summary = {};
+    for (const payment of payments) {
+      if (!summary[payment.userId]) {
+        summary[payment.userId] = 0;
+      }
+      summary[payment.userId] += payment.amount;
+    }
+    return summary;
+  }
 
 export function addSplit(newSplit) {
   splits = [...splits, newSplit];

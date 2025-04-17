@@ -15,14 +15,12 @@ const SplitItemCard = ({ splitItem, userId, type, onUpdate }) => {
     const handlePaymentSubmit = (split) => {
         const amount = parseFloat(paymentAmounts[split.id] || 0);
         console.log(amount)
-        if (amount > 0) {
             updateSplitPayment(split.id, userId, amount);
             onUpdate();
             setPaymentAmounts({
                 ...paymentAmounts,
                 [split.id]: '',
             });
-        }
     };
     console.log("splitItem", splitItem)
 
