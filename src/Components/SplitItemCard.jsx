@@ -49,6 +49,7 @@ const SplitItemCard = ({ splitItem, userId, type, onUpdate }) => {
     return (
         <div key={splitItem.id} className='split-card-item'>
             <h3>{splitItem.description}</h3>
+            <h4>Created By :{splitItem.creatorName}</h4>
             <div className='users-split-main'>
                 <table className='users-in-split'>
                     <tr>

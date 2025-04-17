@@ -153,6 +153,11 @@ button {
     align-self: self-start;
 }
 
+.split-card-item h4 {
+    font-size: 0.8rem;
+    align-self: self-start;
+}
+
 .users-split-main {
     width: 100%;
 }
