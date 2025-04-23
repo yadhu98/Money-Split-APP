@@ -13,13 +13,15 @@ export function getSplitsForUser(userId) {
   }
   
   function getUserOwesSplits(userId) {
-    return splits
+    console.log("this splits",splits)
+   const filteredSplit = splits
       .filter(split => {
         const isSharing = split.shares.some(share => share.userId === userId);
         const notCreator = split.creatorId !== userId;
         return isSharing && notCreator;
       })
-      .map(split => {
+      console.log('filt',filteredSplit)
+      const mappedFilteredSplit = filteredSplit.map(split => {
         const userPart = split.shares.find(share => share.userId === userId);
         const paidSoFar = getTotalPaid(split.payments, userId);
         
@@ -30,12 +32,14 @@ export function getSplitsForUser(userId) {
           remaining: userPart.amount - paidSoFar
         };
       });
+      console.log("mapped Filtered",mappedFilteredSplit)
+      return mappedFilteredSplit
   }
   
   function getOthersOweSplits(userId) {
-    return splits
-      .filter(split => split.creatorId === userId)
-      .map(split => {
+    const filteredSplits =  splits.filter(split => split.creatorId === userId)
+     console.log("filteredSplitsOthersOwe",filteredSplits)
+     const mappedFilterSplitOtherOwe = filteredSplits.map(split => {
         const whoPaidWhat = getPaymentSummary(split.payments);
         
         console.log("payments", whoPaidWhat);
@@ -49,6 +53,8 @@ export function getSplitsForUser(userId) {
           }))
         };
       });
+      console.log("mapped Filtered Split Other owe",mappedFilterSplitOtherOwe)
+      return mappedFilterSplitOtherOwe
   }
   
   function getTotalPaid(payments, userId) {
